@@ -3,387 +3,309 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>配信ポイント集計ツール</title>
+  <title>NOIGRIT 署名マニュアル｜PDFに署名する全部入りガイド</title>
+  <meta name="description" content="NOIGRIT向け 署名マニュアル。スマホ（iPhone/Android）・PC（Mac/Windows）・印刷手書きの3カテゴリで超詳細に解説。標準機能のみ。スマホ最適化・軽量表示。"/>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#0f172a; --panel:#111827; --muted:#9fb1ce; --ink:#eef2ff; --accent:#22c55e; --accent-2:#06b6d4; --warn:#f59e0b; --danger:#ef4444; --border:#1f2937;
+      --bg:#0b1220; --panel:#0f172a; --ink:#e5e7eb; --muted:#94a3b8; --line:#1f2937; --accent:#38bdf8; --accent2:#22c55e;
+      --ng-y1:#fde047; --ng-y2:#f59e0b; --ng-stroke:#eab308;
+      --shadow:0 6px 16px rgba(0,0,0,.25);
     }
     *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-    body{
-      margin:0; font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans JP",sans-serif;
-      color:var(--ink); background:radial-gradient(1200px 600px at 70% -10%, #0b1224 0%, #0f172a 40%, #0b1224 100%);
+    html,body{ height:100%; margin:0; padding:0; }
+    body{ font-family:system-ui,-apple-system,Segoe UI,Roboto,"Noto Sans JP",sans-serif; color:var(--ink); background:linear-gradient(180deg,var(--bg),#0a1328 40%,var(--bg)); }
+
+    header{ padding:calc(18px + env(safe-area-inset-top)) 16px 14px; background:var(--panel); border-bottom:1px solid var(--line); position:sticky; top:0; z-index:40; }
+    .hero{ max-width:1100px; margin:0 auto; text-align:center; }
+
+    .brand{ display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+    .logo-badge{ display:inline-flex; align-items:center; justify-content:center; padding:.5em 1.2em; border-radius:14px;
+      background:linear-gradient(135deg, var(--ng-y1), var(--ng-y2)); color:#1f2937;
+      font-family:'Montserrat', sans-serif; font-weight:900; font-size:24px; letter-spacing:.1em;
+      border:1px solid var(--ng-stroke); box-shadow:inset 0 1px 0 rgba(255,255,255,.5), var(--shadow);
+      text-transform:uppercase;
     }
-    header{ position:sticky; top:0; z-index:10; backdrop-filter:saturate(140%) blur(6px); background:rgba(11,18,36,.6); border-bottom:1px solid var(--border); }
-    header .wrap{ max-width:1200px; margin:0 auto; display:flex; align-items:center; gap:16px; padding:12px 16px; }
-    h1{ font-size:18px; margin:0; letter-spacing:.04em; }
-    main{ max-width:1200px; margin:18px auto; padding:0 16px 32px; }
+    .brand h1{ margin:0; font-size:26px; letter-spacing:.02em; font-weight:700; font-family:'Montserrat', sans-serif; }
+    .hero p{ margin:10px 0 0; color:var(--muted); font-size:15px; }
 
-    .grid{ display:grid; grid-template-columns: 300px 1fr 480px; gap:16px; align-items:start; }
+    .tabs{ max-width:1100px; margin:12px auto 0; padding:10px 12px 8px; display:flex; gap:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; border-top:1px solid rgba(255,255,255,.04); }
+    .tabs::-webkit-scrollbar{ display:none; }
+    .tab{ appearance:none; border:none; cursor:pointer; padding:14px 18px; border-radius:999px; background:#0f2036; color:var(--ink); border:1px solid #253449; font-weight:800; flex:0 0 auto; white-space:nowrap; font-size:15px; line-height:1.2; }
+    .tab[aria-selected="true"]{ outline:2px solid color-mix(in oklab, var(--accent) 60%, white 0%); background:#142742; }
 
-    .card{ background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25);
-      overflow:hidden; }
-    .card h2{ font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:0; padding:12px 14px; border-bottom:1px solid var(--border); }
-    .card .body{ padding:14px; }
+    main{ max-width:1100px; margin:16px auto 80px; padding:0 16px; }
+    .panel{ display:none; background:var(--panel); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:20px; margin:16px 0; }
+    .panel[aria-hidden="false"]{ display:block; }
+    .panel h2{ margin:0 0 10px; color:var(--accent); font-size:20px; }
+    .panel .sub{ margin:0 0 12px; color:var(--muted); font-size:14px; }
 
-    /* 左列：名前 */
-    .name-tools{ display:flex; gap:8px; margin-bottom:10px; }
-    .name-tools input{ flex:1; background:#0b1327; color:var(--ink); border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
-    .btn{ border:1px solid var(--border); background:#0e172b; color:var(--ink); padding:9px 12px; border-radius:10px; font-weight:600; cursor:pointer; transition:.15s transform, .2s background, .2s border-color, .2s opacity; }
-    .btn:hover{ transform:translateY(-1px); border-color:#2a3a55; }
-    .btn:disabled{ opacity:.5; cursor:not-allowed; }
-    .btn.primary{ background:linear-gradient(180deg, #27c164, #1fb157); border-color:#1b8c47; }
-    .btn.warn{ background:linear-gradient(180deg, #fbbf24, #f59e0b); border-color:#b45309; color:#1b1b1b; }
-    .btn.ghost{ background:transparent; }
+    .intro-grid{ display:grid; grid-template-columns:1fr; gap:14px; text-align:left; }
+    .notice{ border:1px solid #3b3b28; background:#171710; border-radius:12px; padding:14px; }
+    .notice h3{ margin:0 0 8px; color:#fde68a; font-size:16px; }
+    .notice ul{ margin:8px 0 0 18px; padding:0; }
 
-    .name-list{ display:grid; gap:8px; max-height:520px; overflow:auto; padding-right:4px; }
-    .name-item{ display:flex; align-items:center; gap:8px; }
-    .name-btn{ flex:1; text-align:left; padding:10px 12px; background:#0b1327; border:1px solid var(--border); border-radius:10px; cursor:pointer; font-weight:700; }
-    .name-btn.active{ outline:2px solid var(--accent-2); box-shadow:0 0 0 3px rgba(6,182,212,.25) inset; }
-    .name-del{ width:36px; height:36px; border-radius:10px; background:#1a2338; border:1px solid var(--border); cursor:pointer; }
+    .subsel{ display:flex; flex-wrap:wrap; gap:10px; margin:12px 0; justify-content:center; }
+    .chip{ appearance:none; border:1px solid #2b3a50; background:#0e1d30; color:var(--ink); border-radius:10px; padding:10px 14px; font-weight:700; cursor:pointer; font-size:14px; }
+    .chip[aria-pressed="true"]{ outline:2px solid var(--accent2); background:#12324f; }
 
-    /* 中央：集計対象ボタン */
-    .tags{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:10px; }
-    .tag-btn{ display:flex; flex-direction:column; gap:6px; align-items:flex-start; justify-content:center; padding:12px; border-radius:12px; border:1px dashed #2a3552; background:rgba(12,20,40,.6); cursor:pointer; }
-    .tag-btn small{ color:var(--muted); font-weight:600; letter-spacing:.02em; }
-    .tag-btn strong{ font-size:16px; }
-    .tag-btn:hover{ border-color:#3a4a72; background:rgba(16,26,50,.8); }
+    .steps{ counter-reset:step; display:grid; gap:12px; }
+    .step{ position:relative; padding:14px 14px 14px 20px; border:1px dashed var(--line); border-radius:12px; background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 8%, transparent), transparent); }
+    .step::before{ counter-increment:step; content:counter(step); position:absolute; left:10px; top:-12px; width:26px; height:26px; display:grid; place-items:center; border-radius:50%; background:var(--accent); color:#062030; font-weight:900; box-shadow:0 4px 10px rgba(0,0,0,.28); font-size:13px; }
 
-    .hint{ color:var(--muted); font-size:13px; margin-top:8px; }
+    .block{ border:1px solid var(--line); border-radius:12px; padding:12px; margin:12px 0; background:#0d1a2b; }
+    .block h3{ margin:0 0 6px; font-size:15px; color:var(--accent2); }
+    .mini{ color:var(--muted); font-size:14px; line-height:1.7; }
+    .kbd{ display:inline-block; padding:3px 7px; border:1px solid var(--line); border-bottom-width:2px; border-radius:6px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; background:#0d1a2b; }
 
-    /* 右列：ランキング（個人） */
-    table{ width:100%; border-collapse:separate; border-spacing:0; }
-    thead th{ position:sticky; top:0; background:#0b1224; border-bottom:1px solid var(--border); padding:10px; font-size:12px; color:var(--muted); text-align:left; }
-    tbody td{ padding:10px; border-bottom:1px dashed #20314d; }
-    tbody tr:hover{ background:rgba(255,255,255,.02); }
-    .rank{ width:56px; text-align:right; padding-right:4px; }
-    .total{ font-weight:800; font-size:16px; }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
-    .inline{ display:inline-flex; gap:6px; align-items:center; }
+    @media (max-width:720px){
+      .brand h1{ font-size:22px; }
+      .logo-badge{ font-size:20px; }
+      .panel{ padding:18px; }
+      .grid2{ grid-template-columns:1fr; }
+      .step{ padding:12px; }
+      .mini{ font-size:13.5px; }
+    }
 
-    /* 見やすい内訳ピル */
-    .pill{ display:inline-flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid #3b4f78; background:#13203a; border-radius:999px; font-size:14px; color:#ffffff; font-weight:700; letter-spacing:.01em; }
-    .pill b{ color:#a5b4fc; font-weight:800; }
-    .pill .muted{ color:#d1d5db; font-weight:700; }
-
-    details{ background:#0b1327; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
-    details > summary{ cursor:pointer; list-style:none; font-weight:800; }
-    details > summary::-webkit-details-marker{ display:none; }
-
-    .foot-tools{ display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
-    .right-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border); }
-    .right-head h2{ border:0; padding:0; }
-
-    /* 部門別ランキング */
-    .dept-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
-    .dept-row{ display:grid; grid-template-columns: 140px 1fr; gap:10px; align-items:start; padding:10px; border:1px dashed #2a3552; border-radius:12px; background:rgba(12,20,40,.5); }
-    .dept-name{ font-weight:800; color:#c7d2fe; }
-    .dept-topline{ font-size:15px; line-height:1.8; }
-    .tag{ display:inline-block; padding:3px 8px; border-radius:8px; border:1px solid #32456e; background:#12203a; margin-right:6px; font-size:12px; color:#e5e7eb; }
-
-    @media (max-width: 1100px){ .grid{ grid-template-columns:1fr; } .dept-row{ grid-template-columns:1fr; } }
+    .footer{ margin:32px auto 60px; max-width:1100px; color:var(--muted); font-size:12.5px; padding:0 16px; text-align:center; }
+    .sendbox{ border:1px solid #35507a; background:#0b203a; border-radius:12px; padding:12px; }
+    .sendbox h4{ margin:0 0 6px; font-size:14px; color:#8ec1ff; }
+    .sendbox code{ display:block; background:#071425; border:1px solid #11294a; padding:10px; border-radius:8px; font-family:ui-monospace, SFMono-Regular, Menlo, monospace; white-space:pre-wrap; word-break:break-word; color:#dbeafe; }
   </style>
 </head>
 <body>
   <header>
-    <div class="wrap">
-      <h1>配信ポイント集計ツール</h1>
-      <span class="tag">アクティブ: <b id="activeNamePill">未選択</b></span>
-      <div class="inline" style="margin-left:auto;gap:10px;">
-        <button class="btn ghost" id="exportJsonBtn">エクスポート(JSON)</button>
-        <input type="file" id="importJsonInput" accept="application/json" style="display:none;" />
-        <button class="btn ghost" id="importJsonBtn">インポート(JSON)</button>
-        <button class="btn warn" id="resetAllBtn">全リセット</button>
+    <div class="hero">
+      <div class="brand">
+        <span class="logo-badge">NOIGRIT</span>
+        <h1>署名マニュアル</h1>
       </div>
+      <p>ご自身で署名に使う端末（PC/スマホ）に合わせて、下のカテゴリを選択してください。</p>
     </div>
   </header>
 
+  <div class="tabs" role="tablist" aria-label="NOIGRIT 署名カテゴリ">
+    <button class="tab" role="tab" aria-selected="true" aria-controls="p-intro" id="t-intro">使い方 / 注意事項</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-phone" id="t-phone">スマホで署名する場合</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-pc" id="t-pc">PCで署名する場合</button>
+    <button class="tab" role="tab" aria-selected="false" aria-controls="p-print" id="t-print">その他（印刷/手書き）</button>
+  </div>
+
   <main>
-    <div class="grid">
-      <!-- 左：名前一覧 -->
-      <section class="card">
-        <h2>名前一覧</h2>
-        <div class="body">
-          <div class="name-tools">
-            <input id="newName" placeholder="名前を入力" />
-            <button class="btn primary" id="addNameBtn">追加</button>
-          </div>
-          <div class="name-list" id="nameList"></div>
-          <p class="hint">名前を選択 → 右の「集計対象」ボタンを押して加点します。</p>
+    <!-- INTRO -->
+    <section class="panel" id="p-intro" role="tabpanel" aria-labelledby="t-intro" aria-hidden="false">
+      <h2>NOIGRIT署名マニュアルの使い方</h2>
+      <div class="intro-grid">
+        <p class="sub">スマホ / PC / 印刷）からお選びください。各ページの最後に送付方法があります。</p>
+        <div class="notice">
+          <h3>注意事項</h3>
+          <ul>
+            <li>ご記入いただくのは「<b>配信申込書兼承諾書</b>」のみです。</li>
+            <li>送付は「配信申込書兼承諾書」だけでなく <b>署名ページを含む全ページ</b> を添付してください。</li>
+            <li><b>誤字・脱字がないか</b> をご確認ください。</li>
+            <li><b>期日を過ぎると契約できない場合</b> があります。必ず期限内にご対応ください。</li>
+          </ul>
         </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- 中央：集計対象 -->
-      <section class="card">
-        <h2>集計対象（クリックで加点）</h2>
-        <div class="body">
-          <div class="tags" id="targetButtons"></div>
-          <p class="hint">ヒント：<b>Shift</b>を押しながらクリックで<em>1回分の減点（取り消し）</em>ができます。</p>
+    <!-- PHONE (iPhone/Android) -->
+    <section class="panel" id="p-phone" role="tabpanel" aria-labelledby="t-phone" aria-hidden="true">
+      <h2>スマホで署名する場合</h2>
+      <p class="sub">お使いの機種を選んでください。</p>
+      <div class="subsel" role="group" aria-label="スマホ機種選択">
+        <button class="chip" id="c-iphone" aria-pressed="true">iPhone</button>
+        <button class="chip" id="c-android" aria-pressed="false">Android</button>
+      </div>
+      <div class="phone-iphone">
+        <div class="steps" style="margin-top:10px;">
+          <div class="step"><b>PDFを開く：</b> メール添付→プレビューで <span class="kbd">マークアップ</span>。またはファイルAppでPDF→右上 <span class="kbd">マークアップ</span>。</div>
+          <div class="step"><b>テキスト署名：</b> 右下「＋」→ <b>テキスト</b>。氏名・日付を入力。<span class="mini">aAでフォント/サイズ/色を調整、ドラッグで位置合わせ。</span></div>
+          <div class="step"><b>手書き署名：</b> 下部ツールからペン→指/Apple Pencilでサイン。<span class="mini">二本指ピンチで拡大すると精密。</span></div>
+          <div class="step"><b>複数ページ：</b> サムネイルから該当ページに移動し、同様に記入。</div>
+          <div class="step"><b>保存/共有：</b> 右上 <b>完了</b> → 共有（メール返信/ファイル保存/AirDrop）。</div>
         </div>
-      </section>
-
-      <!-- 右：ランキング（個人） -->
-      <section class="card">
-        <div class="right-head">
-          <h2>ランキング / 内訳</h2>
-          <span class="tag">合計 = 内訳 × 既定ポイント</span>
-        </div>
-        <div class="body">
-          <div style="max-height:540px; overflow:auto;">
-            <table>
-              <thead>
-                <tr>
-                  <th class="rank">#</th>
-                  <th>名前</th>
-                  <th style="width:100px;">合計</th>
-                  <th>内訳</th>
-                </tr>
-              </thead>
-              <tbody id="rankingBody"></tbody>
-            </table>
+        <div class="grid2">
+          <div class="block">
+            <h3>改変されにくくする（簡易フラット化）</h3>
+            <ol class="mini">
+              <li>共有 → <b>プリント</b> を選択。</li>
+              <li>プレビューを二本指でピンチアウトして全画面化。</li>
+              <li>左上共有 → <b>ファイルに保存</b>。</li>
+            </ol>
           </div>
-          <div class="foot-tools">
-            <button class="btn" id="sortAlphaBtn">名前順で並べ替え</button>
-            <button class="btn" id="sortScoreBtn">得点順で並べ替え</button>
+          <div class="block">
+            <h3>小ワザ</h3>
+            <ul class="mini">
+              <li>文字色は濃いグレーが紙でも自然。</li>
+              <li>長押しでテキスト枠を掴むと微調整しやすい。</li>
+            </ul>
           </div>
         </div>
-      </section>
-    </div>
+        <div class="sendbox">
+          <h4>送付方法</h4>
+          <code>アドレス：noigrit@gmail.com
+件名：【契約書署名済】
+本文：本名記載（フルネーム）</code>
+        </div>
+      </div>
+      <div class="phone-android" style="display:none;">
+        <div class="steps" style="margin-top:10px;">
+          <div class="step"><b>PDFを開く：</b> Googleドライブにアップロード → タップして表示。</div>
+          <div class="step"><b>注釈で入力：</b> 画面下 <b>注釈</b>（鉛筆）→ <b>テキスト</b> を配置 → 氏名・日付を入力。</div>
+          <div class="step"><b>保存：</b> 右上 <b>保存</b>。<span class="mini">元ファイルを残したい場合は「コピーを保存」。</span></div>
+        </div>
+        <div class="grid2">
+          <div class="block">
+            <h3>仕上げ</h3>
+            <ul class="mini">
+              <li>ズレは拡大してドラッグで調整。</li>
+              <li>色は濃いグレーが自然。</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>注意</h3>
+            <p class="mini">機密性が高い場合はPCでローカル編集、または印刷/手書きを推奨。</p>
+          </div>
+        </div>
+        <div class="sendbox">
+          <h4>送付方法</h4>
+          <code>アドレス：noigrit@gmail.com
+件名：【契約書署名済】
+本文：本名記載（フルネーム）</code>
+        </div>
+      </div>
+    </section>
 
-    <!-- 下段：部門別（集計対象）ランキング -->
-    <section class="card" style="margin-top:16px;">
-      <h2>集計対象ランキング（部門別 Top10）</h2>
-      <div class="body">
-        <div class="dept-grid" id="deptRanking"></div>
+    <!-- PC (Mac/Windows) -->
+    <section class="panel" id="p-pc" role="tabpanel" aria-labelledby="t-pc" aria-hidden="true">
+      <h2>PCで署名する場合</h2>
+      <p class="sub">お使いのOSを選んでください。</p>
+      <div class="subsel" role="group" aria-label="PC OS選択">
+        <button class="chip" id="c-mac" aria-pressed="true">Mac</button>
+        <button class="chip" id="c-windows" aria-pressed="false">Windows</button>
+      </div>
+      <div class="pc-mac">
+        <div class="steps" style="margin-top:10px;">
+          <div class="step"><b>PDFを開く：</b> ダブルクリック（プレビュー）。</div>
+          <div class="step"><b>テキスト署名：</b> <span class="kbd">ツール → 注釈 → テキスト</span>。フォント/サイズ/色はツールバーで調整。</div>
+          <div class="step"><b>手書き署名：</b> <span class="kbd">マークアップツールバー → 署名</span> → トラックパッド/カメラで作成 → 挿入。</div>
+          <div class="step"><b>固定化：</b> <span class="kbd">ファイル → プリント → PDFとして保存</span>（簡易フラット化）。</div>
+        </div>
+        <div class="grid2">
+          <div class="block">
+            <h3>小ワザ</h3>
+            <ul class="mini">
+              <li>等幅寄りのフォントと濃いグレーで自然な見た目。</li>
+              <li>用紙サイズ（A4/Letter）に注意。印刷時のズレ防止。</li>
+            </ul>
+          </div>
+          <div class="block">
+            <h3>パスワード（任意）</h3>
+            <ol class="mini">
+              <li><span class="kbd">ファイル → 書き出す</span>。</li>
+              <li>フォーマット: PDF → <b>暗号化</b>にチェック → パスワード設定。</li>
+            </ol>
+          </div>
+        </div>
+        <div class="sendbox">
+          <h4>送付方法</h4>
+          <code>アドレス：noigrit@gmail.com
+件名：【契約書署名済】
+本文：本名記載（フルネーム）</code>
+        </div>
+      </div>
+      <div class="pc-windows" style="display:none;">
+        <div class="steps" style="margin-top:10px;">
+          <div class="step"><b>PDFを開く：</b> 右クリック → <b>プログラムから開く → Microsoft Edge</b>。</div>
+          <div class="step"><b>テキスト署名：</b> 上部 <b>テキストの追加</b> → 氏名・日付を入力し、ドラッグで配置。</div>
+          <div class="step"><b>手書き風：</b> <b>描画</b> でサイン。太さ・透明度を調整。</div>
+          <div class="step"><b>固定化：</b> <b>印刷 → Microsoft Print to PDF</b> で保存。</div>
+        </div>
+        <div class="grid2">
+          <div class="block">
+            <h3>落とし穴</h3>
+            <ul class="mini">
+              <li>フォント差を避けたい → 必ず「印刷→PDF」で固定。</li>
+              <li>同じ署名を複数ページ → 1度作成してコピー&ペースト。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="sendbox">
+          <h4>送付方法</h4>
+          <code>アドレス：noigrit@gmail.com
+件名：【契約書署名済】
+本文：本名記載（フルネーム）</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRINT/HANDWRITE -->
+    <section class="panel" id="p-print" role="tabpanel" aria-labelledby="t-print" aria-hidden="true">
+      <h2>その他（印刷/手書き）</h2>
+      <p class="sub">「手書き必須」や紙原本回収の指定がある相手に確実。</p>
+      <div class="steps">
+        <div class="step"><b>データ準備：</b> USB保存 or 専用アプリ（セブン=netprint、ファミマ/ローソン=PrintSmash）。</div>
+        <div class="step"><b>印刷：</b> マルチコピー機で <b>文書プリント</b>。片面/両面、拡大縮小、向きを確認。</div>
+        <div class="step"><b>記入：</b> ボールペンで署名・日付。訂正は二重線＋訂正印の指示があるか事前確認。</div>
+        <div class="step"><b>スキャン：</b> <b>スキャン → PDF</b>、<b>300dpi</b>目安、白黒/文字モード推奨。USB/スマホ/メールへ保存。</div>
+      </div>
+      <div class="grid2">
+        <div class="block">
+          <h3>仕上がり</h3>
+          <ul class="mini">
+            <li>曲がり防止：原稿台ガイドに合わせる。</li>
+            <li>容量軽減：白黒（文字）モード、300dpiで十分。</li>
+          </ul>
+        </div>
+        <div class="block">
+          <h3>ファイル名ルール</h3>
+          <p class="mini"><b>署名済_YYYYMMDD_相手名_v1.pdf</b> 形式が推奨。</p>
+        </div>
+      </div>
+      <div class="sendbox">
+        <h4>送付方法</h4>
+        <code>アドレス：noigrit@gmail.com
+件名：【契約書署名済】
+本文：本名記載（フルネーム）</code>
       </div>
     </section>
   </main>
 
+  <div class="footer">© 2025 NOIGRIT 署名マニュアル. 本ページは一般的な実務ノウハウの提供を目的としています。</div>
+
   <script>
-    // --- 設定 ---
-    const TARGETS = [
-      { key:"入室", pt:1 },
-      { key:"金枠", pt:3 },
-      { key:"MVP", pt:10 },
-      { key:"大当たり", pt:10 },
-      { key:"ファミリー", pt:10 },
-      { key:"1万コイン", pt:10 },
-      { key:"月間1位", pt:30 },
-      { key:"月間2位", pt:20 },
-      { key:"月間3位", pt:10 },
-      { key:"ちゃま王1", pt:30 },
-      { key:"ちゃま王2", pt:20 },
-      { key:"ちゃま王3", pt:10 },
-    ];
+    // === Minimal JS: enable tab switching & sub-choices ===
+    const tabs = Array.from(document.querySelectorAll('.tab'));
+    const panels = Array.from(document.querySelectorAll('.panel'));
+    function activateTop(id){
+      tabs.forEach(t=>t.setAttribute('aria-selected', String(t.id === 't-'+id)));
+      panels.forEach(p=>p.setAttribute('aria-hidden', String(p.id !== 'p-'+id)));
+    }
+    tabs.forEach(t=> t.addEventListener('click', ()=> activateTop(t.id.replace('t-',''))));
 
-    const DEFAULT_NAMES = [
-      "るみみん","れの","さな","よしの","うれい","ころたん","かの","ほまる","たに","すずき"
-    ];
-
-    // --- 状態 ---
-    let state = loadState() || {
-      people: {}, // name -> { counts: {key: number} }
-      order: [], // 表示順（登録順）
-      active: null,
-      sort: "score", // or "alpha"
-    };
-
-    // 初期化（初回）
-    if(Object.keys(state.people).length === 0){
-      DEFAULT_NAMES.forEach(n => addPerson(n));
-      saveState();
+    // Phone chips
+    const phoneI = document.querySelector('.phone-iphone');
+    const phoneA = document.querySelector('.phone-android');
+    const chipI = document.getElementById('c-iphone');
+    const chipA = document.getElementById('c-android');
+    if(chipI && chipA){
+      chipI.addEventListener('click',()=>{ chipI.setAttribute('aria-pressed','true'); chipA.setAttribute('aria-pressed','false'); phoneI.style.display='block'; phoneA.style.display='none'; });
+      chipA.addEventListener('click',()=>{ chipI.setAttribute('aria-pressed','false'); chipA.setAttribute('aria-pressed','true'); phoneI.style.display='none'; phoneA.style.display='block'; });
     }
 
-    // --- ユーティリティ ---
-    function saveState(){ localStorage.setItem("points-tracker-v1", JSON.stringify(state)); }
-    function loadState(){ try{ return JSON.parse(localStorage.getItem("points-tracker-v1")); }catch{ return null; } }
-    function ensurePerson(name){
-      if(!state.people[name]){
-        state.people[name] = { counts:{} };
-        TARGETS.forEach(t=> state.people[name].counts[t.key] = 0);
-        state.order.push(name);
-      }
+    // PC chips
+    const pcm = document.querySelector('.pc-mac');
+    const pcw = document.querySelector('.pc-windows');
+    const chipM = document.getElementById('c-mac');
+    const chipW = document.getElementById('c-windows');
+    if(chipM && chipW){
+      chipM.addEventListener('click',()=>{ chipM.setAttribute('aria-pressed','true'); chipW.setAttribute('aria-pressed','false'); pcm.style.display='block'; pcw.style.display='none'; });
+      chipW.addEventListener('click',()=>{ chipM.setAttribute('aria-pressed','false'); chipW.setAttribute('aria-pressed','true'); pcm.style.display='none'; pcw.style.display='block'; });
     }
-    function addPerson(name){
-      const n = name.trim();
-      if(!n) return;
-      if(state.people[n]){ alert("同名が存在します"); return; }
-      ensurePerson(n);
-      state.active = n;
-    }
-    function delPerson(name){
-      if(!confirm(`${name} を削除しますか？`)) return;
-      delete state.people[name];
-      state.order = state.order.filter(x=>x!==name);
-      if(state.active === name) state.active = null;
-    }
-
-    function totalScore(name){
-      const p = state.people[name];
-      return TARGETS.reduce((sum,t)=> sum + (p.counts[t.key]||0) * t.pt, 0);
-    }
-
-    function handleTagClick(key, delta){
-      const active = state.active;
-      if(!active){ alert("先に名前を選択してください"); return; }
-      const c = state.people[active].counts;
-      c[key] = Math.max(0, (c[key]||0) + delta);
-      renderAll(); saveState();
-    }
-
-    function exportJson(){
-      const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `points_${new Date().toISOString().slice(0,10)}.json`;
-      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
-    }
-
-    function importJson(file){
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(!data.people || !data.order){ throw new Error("形式が不正です"); }
-          state = data; renderAll(); saveState();
-        }catch(e){ alert("読み込みに失敗しました: " + e.message); }
-      };
-      reader.readAsText(file);
-    }
-
-    function resetAll(){
-      if(!confirm("全データを削除して初期化しますか？")) return;
-      localStorage.removeItem("points-tracker-v1");
-      state = { people:{}, order:[], active:null, sort:"score" };
-      DEFAULT_NAMES.forEach(n => addPerson(n));
-      renderAll(); saveState();
-    }
-
-    // --- 部門別ランキング生成 ---
-    function buildDeptRanking(){
-      const wrap = document.getElementById('deptRanking');
-      wrap.innerHTML = '';
-
-      TARGETS.forEach(t=>{
-        // name と回数
-        const arr = state.order
-          .filter(n => state.people[n])
-          .map(n => ({ name:n, count: (state.people[n].counts[t.key]||0) }))
-          .sort((a,b)=> b.count - a.count || a.name.localeCompare(b.name,'ja'))
-          .filter(x => x.count>0);
-
-        const row = document.createElement('div'); row.className='dept-row';
-        const left = document.createElement('div'); left.className='dept-name'; left.textContent = t.key + ' 部門';
-        const right = document.createElement('div'); right.className='dept-topline';
-
-        if(arr.length===0){
-          right.innerHTML = '<span class="hint">まだ記録がありません</span>';
-        }else{
-          // Top10 を「20回 るみみん / 18回 れの …」形式で
-          const top = arr.slice(0,10).map(x => `<span class="pill"><span class="muted">${x.count}回</span> ${x.name}</span>`).join(' ');
-          right.innerHTML = top;
-        }
-        row.append(left,right); wrap.appendChild(row);
-      });
-    }
-
-    // --- 描画 ---
-    function renderNames(){
-      const wrap = document.getElementById('nameList');
-      wrap.innerHTML = '';
-      state.order.forEach(name=>{
-        if(!state.people[name]) return;
-        const row = document.createElement('div'); row.className = 'name-item';
-        const btn = document.createElement('button'); btn.className = 'name-btn'; btn.textContent = name;
-        if(state.active === name) btn.classList.add('active');
-        btn.onclick = ()=>{ state.active = name; renderAll(); saveState(); };
-        const del = document.createElement('button'); del.className='name-del'; del.title='削除'; del.textContent='✕';
-        del.onclick = ()=>{ delPerson(name); renderAll(); saveState(); };
-        row.append(btn, del); wrap.appendChild(row);
-      });
-      document.getElementById('activeNamePill').textContent = state.active || '未選択';
-    }
-
-    function renderTargets(){
-      const wrap = document.getElementById('targetButtons');
-      wrap.innerHTML = '';
-      TARGETS.forEach(t=>{
-        const b = document.createElement('button'); b.className='tag-btn';
-        b.innerHTML = `<strong>${t.key}</strong><small>+${t.pt} pt</small>`;
-        b.onclick = (e)=> handleTagClick(t.key, e.shiftKey ? -1 : +1);
-        wrap.appendChild(b);
-      });
-    }
-
-    function renderRanking(){
-      const body = document.getElementById('rankingBody');
-      body.innerHTML = '';
-      const rows = Object.keys(state.people).map(name=>({
-        name,
-        total: totalScore(name),
-        counts: {...state.people[name].counts},
-      }));
-
-      if(state.sort === 'alpha') rows.sort((a,b)=> a.name.localeCompare(b.name, 'ja'));
-      else rows.sort((a,b)=> b.total - a.total || a.name.localeCompare(b.name,'ja'));
-
-      rows.forEach((row, idx)=>{
-        const tr = document.createElement('tr');
-        const rank = document.createElement('td'); rank.className='rank'; rank.textContent = idx+1;
-        const name = document.createElement('td'); name.textContent = row.name; if(state.active===row.name){ name.style.fontWeight='800'; }
-        const total = document.createElement('td'); total.className='total'; total.textContent = row.total;
-        const detail = document.createElement('td');
-
-        const det = document.createElement('details');
-        const sum = document.createElement('summary');
-        sum.textContent = '内訳を表示';
-        det.appendChild(sum);
-
-        const list = document.createElement('div'); list.style.display='grid'; list.style.gridTemplateColumns='repeat(2, minmax(0,1fr))'; list.style.gap='8px'; list.style.marginTop='10px';
-        TARGETS.forEach(t=>{
-          const count = row.counts[t.key] || 0;
-          const pill = document.createElement('span'); pill.className='pill';
-          pill.innerHTML = `<b>${t.key}</b> × <span class="muted">${count}</span> = <b>${count * t.pt}</b>`;
-          list.appendChild(pill);
-        });
-        det.appendChild(list);
-        detail.appendChild(det);
-
-        tr.append(rank, name, total, detail); body.appendChild(tr);
-      });
-    }
-
-    function renderAll(){
-      renderNames(); renderTargets(); renderRanking(); buildDeptRanking();
-    }
-
-    // --- イベント ---
-    document.getElementById('addNameBtn').onclick = ()=>{
-      const v = document.getElementById('newName').value;
-      addPerson(v); document.getElementById('newName').value = '';
-      renderAll(); saveState();
-    };
-    document.getElementById('newName').addEventListener('keydown', (e)=>{
-      if(e.key==='Enter'){ document.getElementById('addNameBtn').click(); }
-    });
-
-    document.getElementById('sortAlphaBtn').onclick = ()=>{ state.sort='alpha'; renderAll(); saveState(); };
-    document.getElementById('sortScoreBtn').onclick = ()=>{ state.sort='score'; renderAll(); saveState(); };
-
-    document.getElementById('exportJsonBtn').onclick = exportJson;
-    document.getElementById('importJsonBtn').onclick = ()=> document.getElementById('importJsonInput').click();
-    document.getElementById('importJsonInput').addEventListener('change', e=>{
-      const f = e.target.files[0]; if(f) importJson(f);
-    });
-
-    document.getElementById('resetAllBtn').onclick = resetAll;
-
-    // 起動
-    // 既存 state から不足キーを補完（定義追加に備える）
-    Object.keys(state.people).forEach(n=>{
-      TARGETS.forEach(t=>{ if(!(t.key in state.people[n].counts)) state.people[n].counts[t.key]=0; });
-    });
-    renderAll();
   </script>
 </body>
 </html>
