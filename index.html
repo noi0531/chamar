@@ -20,6 +20,7 @@
     main{ max-width:1200px; margin:18px auto; padding:0 16px 32px; }
 
     .grid{ display:grid; grid-template-columns: 300px 1fr 480px; gap:16px; align-items:start; }
+
     .card{ background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25); overflow:hidden; }
     .card h2{ font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:0; padding:12px 14px; border-bottom:1px solid var(--border); }
     .card .body{ padding:14px; }
@@ -99,7 +100,7 @@
             <button class="btn primary" id="addNameBtn">追加</button>
           </div>
           <div class="name-list" id="nameList"></div>
-          <p class="hint">名前を選択 → 右の「集計対象」ボタンを押して加点/減点します。</p>
+          <p class="hint">名前を選択 → 右の「集計対象」ボタンで操作します。</p>
         </div>
       </section>
 
@@ -253,7 +254,7 @@
       const hint = document.getElementById('hintText');
       if (hint) {
         hint.innerHTML = IS_MOBILE
-          ? 'ヒント：<b>タップ</b>で<em>1回分の減点（取り消し）</em>、<b>長押し（約0.5秒）</b>で<em>1回分の加点</em>ができます。'
+          ? 'ヒント：<b>タップ</b>で<em>+1（加点）</em>、<b>長押し（約0.5秒）</b>で<em>-1（取り消し）</em>ができます。'
           : 'ヒント：<b>クリック</b>で<em>+1</em>、<b>Shift+クリック</b>で<em>-1（取り消し）</em>ができます。';
       }
 
@@ -263,7 +264,7 @@
         b.innerHTML = `<strong>${t.key}</strong><small>+${t.pt} pt</small>`;
 
         if (IS_MOBILE) {
-          // スマホ：タップ＝-1、長押し＝+1
+          // スマホ：タップ＝+1、長押し＝-1
           let longPressTimer = null;
           let longPressed = false;
 
@@ -271,13 +272,13 @@
             longPressed = false;
             longPressTimer = setTimeout(()=>{
               longPressed = true;
-              handleTagClick(t.key, +1); // 長押しで加点
-            }, 500); // 長押し判定
+              handleTagClick(t.key, -1); // 長押しで減点
+            }, 500); // 長押し閾値
           };
           const onEnd = () => {
             if (longPressTimer) clearTimeout(longPressTimer);
-            // 長押しでなければ単タップ → 減点
-            if (!longPressed) handleTagClick(t.key, -1);
+            // 長押しでなければ単タップ → 加点
+            if (!longPressed) handleTagClick(t.key, +1);
           };
 
           b.addEventListener('touchstart', onStart, {passive:true});
