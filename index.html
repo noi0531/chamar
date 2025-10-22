@@ -65,7 +65,6 @@
     .pill{ display:inline-flex; align-items:center; gap:8px; padding:7px 10px; border:1px solid #3b4f78; background:#13203a; border-radius:999px; font-size:14px; color:#ffffff; font-weight:700; letter-spacing:.01em; }
     .pill b{ color:#a5b4fc; font-weight:800; }
     .pill .muted{ color:#d1d5db; font-weight:700; }
-
     details{ background:#0b1327; border:1px solid var(--border); border-radius:10px; padding:10px 12px; }
     details > summary{ cursor:pointer; list-style:none; font-weight:800; }
     details > summary::-webkit-details-marker{ display:none; }
@@ -74,14 +73,7 @@
     .right-head{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px; border-bottom:1px solid var(--border); }
     .right-head h2{ border:0; padding:0; }
 
-    /* 部門別ランキング */
-    .dept-grid{ display:grid; grid-template-columns:1fr; gap:16px; }
-    .dept-row{ display:grid; grid-template-columns: 140px 1fr; gap:10px; align-items:start; padding:10px; border:1px dashed #2a3552; border-radius:12px; background:rgba(12,20,40,.5); }
-    .dept-name{ font-weight:800; color:#c7d2fe; }
-    .dept-topline{ font-size:15px; line-height:1.8; }
-    .tag{ display:inline-block; padding:3px 8px; border-radius:8px; border:1px solid #32456e; background:#12203a; margin-right:6px; font-size:12px; color:#e5e7eb; }
-
-    @media (max-width: 1100px){ .grid{ grid-template-columns:1fr; } .dept-row{ grid-template-columns:1fr; } }
+    @media (max-width: 1100px){ .grid{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
@@ -113,7 +105,7 @@
         </div>
       </section>
 
-      <!-- 中央：集計対象 -->
+      <!-- 中央：集計対象（= 三点セットのみ） -->
       <section class="card">
         <h2>集計対象（クリックで加点）</h2>
         <div class="body">
@@ -149,55 +141,32 @@
         </div>
       </section>
     </div>
-
-    <!-- 下段：部門別（集計対象）ランキング -->
-    <section class="card" style="margin-top:16px;">
-      <h2>集計対象ランキング（部門別 Top10）</h2>
-      <div class="body">
-        <div class="dept-grid" id="deptRanking"></div>
-      </div>
-    </section>
   </main>
 
   <script>
     // --- 設定 ---
+    // ストレージキーを v2 に変更（旧データと分離）
+    const STORAGE_KEY = "points-tracker-v2";
+
+    // 「三点セット」だけ、1pt
     const TARGETS = [
-      { key:"入室", pt:1 },
-      { key:"視聴時間", pt:2 },
-      { key:"金枠", pt:3 },
-      { key:"MVP", pt:10 },
-      { key:"大当たり", pt:10 },
-      { key:"ファミリー", pt:10 },
-      { key:"1万コイン", pt:10 },
-      { key:"月間1位", pt:30 },
-      { key:"月間2位", pt:20 },
-      { key:"月間3位", pt:10 },
-      { key:"ちゃま王1", pt:30 },
-      { key:"ちゃま王2", pt:20 },
-      { key:"ちゃま王3", pt:10 },
+      { key:"三点セット", pt:1 },
     ];
 
-    const DEFAULT_NAMES = [
-      "るみみん","れの","さな","よしの","うれい","ころたん","かの","ほまる","たに","すずき"
-    ];
+    // 初期メンバーは空（随時追加）
+    const DEFAULT_NAMES = [];
 
     // --- 状態 ---
     let state = loadState() || {
       people: {}, // name -> { counts: {key: number} }
-      order: [], // 表示順（登録順）
+      order: [],  // 表示順（登録順）
       active: null,
       sort: "score", // or "alpha"
     };
 
-    // 初期化（初回）
-    if(Object.keys(state.people).length === 0){
-      DEFAULT_NAMES.forEach(n => addPerson(n));
-      saveState();
-    }
-
     // --- ユーティリティ ---
-    function saveState(){ localStorage.setItem("points-tracker-v1", JSON.stringify(state)); }
-    function loadState(){ try{ return JSON.parse(localStorage.getItem("points-tracker-v1")); }catch{ return null; } }
+    function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    function loadState(){ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)); }catch{ return null; } }
     function ensurePerson(name){
       if(!state.people[name]){
         state.people[name] = { counts:{} };
@@ -236,7 +205,7 @@
       const blob = new Blob([JSON.stringify(state, null, 2)], {type:'application/json'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
-      a.href = url; a.download = `points_${new Date().toISOString().slice(0,10)}.json`;
+      a.href = url; a.download = `points_v2_${new Date().toISOString().slice(0,10)}.json`;
       document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
     }
 
@@ -254,38 +223,10 @@
 
     function resetAll(){
       if(!confirm("全データを削除して初期化しますか？")) return;
-      localStorage.removeItem("points-tracker-v1");
+      localStorage.removeItem(STORAGE_KEY);
       state = { people:{}, order:[], active:null, sort:"score" };
-      DEFAULT_NAMES.forEach(n => addPerson(n));
+      // 初期は空。必要ならここで DEFAULT_NAMES.forEach(addPerson)
       renderAll(); saveState();
-    }
-
-    // --- 部門別ランキング生成 ---
-    function buildDeptRanking(){
-      const wrap = document.getElementById('deptRanking');
-      wrap.innerHTML = '';
-
-      TARGETS.forEach(t=>{
-        // name と回数
-        const arr = state.order
-          .filter(n => state.people[n])
-          .map(n => ({ name:n, count: (state.people[n].counts[t.key]||0) }))
-          .sort((a,b)=> b.count - a.count || a.name.localeCompare(b.name,'ja'))
-          .filter(x => x.count>0);
-
-        const row = document.createElement('div'); row.className='dept-row';
-        const left = document.createElement('div'); left.className='dept-name'; left.textContent = t.key + ' 部門';
-        const right = document.createElement('div'); right.className='dept-topline';
-
-        if(arr.length===0){
-          right.innerHTML = '<span class="hint">まだ記録がありません</span>';
-        }else{
-          // Top10 を「20回 るみみん / 18回 れの …」形式で
-          const top = arr.slice(0,10).map(x => `<span class="pill"><span class="muted">${x.count}回</span> ${x.name}</span>`).join(' ');
-          right.innerHTML = top;
-        }
-        row.append(left,right); wrap.appendChild(row);
-      });
     }
 
     // --- 描画 ---
@@ -355,7 +296,7 @@
     }
 
     function renderAll(){
-      renderNames(); renderTargets(); renderRanking(); buildDeptRanking();
+      renderNames(); renderTargets(); renderRanking();
     }
 
     // --- イベント ---
@@ -379,8 +320,7 @@
 
     document.getElementById('resetAllBtn').onclick = resetAll;
 
-    // 起動
-    // 既存 state から不足キーを補完（定義追加に備える）
+    // 起動：不足キーを補完（将来の定義追加に備え）
     Object.keys(state.people).forEach(n=>{
       TARGETS.forEach(t=>{ if(!(t.key in state.people[n].counts)) state.people[n].counts[t.key]=0; });
     });
