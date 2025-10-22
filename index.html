@@ -20,9 +20,7 @@
     main{ max-width:1200px; margin:18px auto; padding:0 16px 32px; }
 
     .grid{ display:grid; grid-template-columns: 300px 1fr 480px; gap:16px; align-items:start; }
-
-    .card{ background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25);
-      overflow:hidden; }
+    .card{ background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00)); border:1px solid var(--border); border-radius:16px; box-shadow:0 6px 18px rgba(0,0,0,.25); overflow:hidden; }
     .card h2{ font-size:14px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin:0; padding:12px 14px; border-bottom:1px solid var(--border); }
     .card .body{ padding:14px; }
 
@@ -101,16 +99,16 @@
             <button class="btn primary" id="addNameBtn">追加</button>
           </div>
           <div class="name-list" id="nameList"></div>
-          <p class="hint">名前を選択 → 右の「集計対象」ボタンを押して加点します。</p>
+          <p class="hint">名前を選択 → 右の「集計対象」ボタンを押して加点/減点します。</p>
         </div>
       </section>
 
       <!-- 中央：集計対象（= 三点セットのみ） -->
       <section class="card">
-        <h2>集計対象（クリックで加点）</h2>
+        <h2>集計対象（クリック / タップで操作）</h2>
         <div class="body">
           <div class="tags" id="targetButtons"></div>
-          <p class="hint">ヒント：<b>Shift</b>を押しながらクリックで<em>1回分の減点（取り消し）</em>ができます。</p>
+          <p class="hint" id="hintText">ヒント：</p>
         </div>
       </section>
 
@@ -145,7 +143,6 @@
 
   <script>
     // --- 設定 ---
-    // ストレージキーを v2 に変更（旧データと分離）
     const STORAGE_KEY = "points-tracker-v2";
 
     // 「三点セット」だけ、1pt
@@ -155,6 +152,9 @@
 
     // 初期メンバーは空（随時追加）
     const DEFAULT_NAMES = [];
+
+    // タッチ端末（スマホ/タブレット）判定
+    const IS_MOBILE = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
     // --- 状態 ---
     let state = loadState() || {
@@ -225,7 +225,6 @@
       if(!confirm("全データを削除して初期化しますか？")) return;
       localStorage.removeItem(STORAGE_KEY);
       state = { people:{}, order:[], active:null, sort:"score" };
-      // 初期は空。必要ならここで DEFAULT_NAMES.forEach(addPerson)
       renderAll(); saveState();
     }
 
@@ -249,10 +248,46 @@
     function renderTargets(){
       const wrap = document.getElementById('targetButtons');
       wrap.innerHTML = '';
+
+      // ヒント文言をデバイス別に
+      const hint = document.getElementById('hintText');
+      if (hint) {
+        hint.innerHTML = IS_MOBILE
+          ? 'ヒント：<b>タップ</b>で<em>1回分の減点（取り消し）</em>、<b>長押し（約0.5秒）</b>で<em>1回分の加点</em>ができます。'
+          : 'ヒント：<b>クリック</b>で<em>+1</em>、<b>Shift+クリック</b>で<em>-1（取り消し）</em>ができます。';
+      }
+
       TARGETS.forEach(t=>{
-        const b = document.createElement('button'); b.className='tag-btn';
+        const b = document.createElement('button');
+        b.className='tag-btn';
         b.innerHTML = `<strong>${t.key}</strong><small>+${t.pt} pt</small>`;
-        b.onclick = (e)=> handleTagClick(t.key, e.shiftKey ? -1 : +1);
+
+        if (IS_MOBILE) {
+          // スマホ：タップ＝-1、長押し＝+1
+          let longPressTimer = null;
+          let longPressed = false;
+
+          const onStart = () => {
+            longPressed = false;
+            longPressTimer = setTimeout(()=>{
+              longPressed = true;
+              handleTagClick(t.key, +1); // 長押しで加点
+            }, 500); // 長押し判定
+          };
+          const onEnd = () => {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            // 長押しでなければ単タップ → 減点
+            if (!longPressed) handleTagClick(t.key, -1);
+          };
+
+          b.addEventListener('touchstart', onStart, {passive:true});
+          b.addEventListener('touchend', onEnd);
+          b.addEventListener('touchcancel', ()=>{ if(longPressTimer) clearTimeout(longPressTimer); });
+        } else {
+          // PC：クリック=+1、Shift+クリック=-1
+          b.onclick = (e)=> handleTagClick(t.key, e.shiftKey ? -1 : +1);
+        }
+
         wrap.appendChild(b);
       });
     }
@@ -320,7 +355,7 @@
 
     document.getElementById('resetAllBtn').onclick = resetAll;
 
-    // 起動：不足キーを補完（将来の定義追加に備え）
+    // 起動：不足キーを補完（将来定義追加に備え）
     Object.keys(state.people).forEach(n=>{
       TARGETS.forEach(t=>{ if(!(t.key in state.people[n].counts)) state.people[n].counts[t.key]=0; });
     });
